@@ -17,12 +17,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
 
       - name: Install Dependencies & Build Web Project
         run: |
-          npm ci
-          npm run build
+          npm install
+          npm run build --if-present
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
