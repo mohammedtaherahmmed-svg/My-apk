@@ -10,38 +10,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. سحب الكود
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. إعداد Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install Dependencies & Build Web Project
+      # 3. تجهيز ملفات مشروع الويب تلقائياً
+      - name: Prepare Web Project
         run: |
-          npm install
+          if [ ! -f package.json ]; then
+            npm init -y
+          fi
+          npm install @capacitor/core @capacitor/cli @capacitor/android
           npm run build --if-present
 
+      # 4. تجميع ملفات HTML/CSS/JS في مجلد مستقل إذا لم تكن مجمعة
+      - name: Prepare Web Directory
+        run: |
+          if [ ! -d "dist" ] && [ ! -d "build" ] && [ ! -d "www" ]; then
+            mkdir -p www
+            find . -maxdepth 1 -type f \( -name "*.html" -o -name "*.css" -o -name "*.js" \) -exec cp {} www/ \;
+            if [ -d "assets" ]; then cp -r assets www/; fi
+            if [ -d "css" ]; then cp -r css www/; fi
+            if [ -d "js" ]; then cp -r js www/; fi
+            if [ -d "images" ]; then cp -r images www/; fi
+            if [ -d "img" ]; then cp -r img www/; fi
+          fi
+
+      # 5. إعداد Java
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
+      # 6. ربط Capacitor واستخراج مشروع الأندرويد
       - name: Capacitor Sync
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          WEB_DIR="dist"
+          if [ -d "build" ]; then WEB_DIR="build"; fi
+          if [ -d "www" ]; then WEB_DIR="www"; fi
+          
+          npx cap init MyApk com.example.app --web-dir $WEB_DIR || true
           npx cap add android || true
           npx cap copy android
           npx cap update android
 
+      # 7. بناء الـ APK
       - name: Build APK with Gradle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      # 8. رفع الملف للتحميل
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
