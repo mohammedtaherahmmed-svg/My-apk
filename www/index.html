@@ -3,121 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;" />
   <title>MONO CHROME — QR</title>
   <style>
     :root {
       --ink: #0c1220;
       --crimson: #b42318;
-      --paper: #f4efe6;
+      --paper: #f3eee6;
       --card: #fffdf8;
-      --line: #d7cfc2;
+      --line: #d9d0c4;
       --muted: #5c6570;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 100% -10%, #fbe7e3 0%, var(--paper) 45%);
+      background: var(--paper);
       color: var(--ink);
-      min-height: 100vh;
     }
-    header {
-      padding: 20px 18px 8px;
-    }
-    .brand {
-      font-size: 11px;
-      letter-spacing: .28em;
-      color: var(--crimson);
-      font-weight: 700;
-    }
+    header { padding: 18px 16px 6px; }
+    .brand { font-size: 11px; letter-spacing: .28em; color: var(--crimson); font-weight: 800; }
     h1 { margin: 6px 0 0; font-size: 22px; }
-    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    main { padding: 8px 16px 28px; display: grid; gap: 14px; }
+    .lead { color: var(--muted); font-size: 14px; margin: 6px 0 0; line-height: 1.5; }
+    main { padding: 10px 16px 32px; display: grid; gap: 12px; }
     .panel {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 14px;
-      box-shadow: 0 8px 24px rgba(12,18,32,.06);
     }
-    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
-    input, textarea, select {
+    h2 { margin: 0 0 10px; font-size: 15px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+    input {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 12px;
       font: inherit;
+      font-size: 16px;
       background: #fff;
-      color: var(--ink);
     }
-    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tabs button, .actions button {
+    .tabs, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button {
       border: 1px solid var(--line);
       background: #fff;
       border-radius: 999px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       font: inherit;
       cursor: pointer;
     }
-    .tabs button.active, .actions button.primary {
-      background: var(--crimson);
-      color: #fff;
-      border-color: var(--crimson);
-    }
-    canvas { width: min(280px, 100%); height: auto; background: #fff; border-radius: 12px; }
-    .qr-wrap { display: grid; place-items: center; padding: 8px 0; }
-    .actions { display: flex; gap: 8px; margin-top: 10px; }
-    .actions button { flex: 1; }
-    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+    button.active, button.primary { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+    .qr-box { display: grid; place-items: center; min-height: 260px; background: #fff; border-radius: 12px; }
+    canvas { width: min(260px, 86vw); height: auto; }
+    .status { text-align: center; font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 1.4em; }
+    .status.ok { color: #1f7a3a; }
+    .status.err { color: var(--crimson); }
+    .actions { margin-top: 12px; }
+    .actions button { flex: 1; min-height: 46px; }
   </style>
 </head>
 <body>
   <header>
     <div class="brand">MONO CHROME</div>
     <h1>FOR IVD SOLUTIONS</h1>
-    <div class="sub">كارت الشركة وQR للتواصل — تأسست 2024</div>
+    <p class="lead">اكتب بيانات التواصل تحت. الـ QR بيتحدّث فورًا وأنت بتكتب.</p>
   </header>
   <main>
     <section class="panel">
-      <div class="tabs" id="types">
-        <button data-kind="vcard" class="active">كارت اتصال</button>
-        <button data-kind="whatsapp">واتساب</button>
-        <button data-kind="phone">هاتف</button>
-        <button data-kind="email">إيميل</button>
-        <button data-kind="website">موقع</button>
-      </div>
-      <div class="qr-wrap"><canvas id="qr"></canvas></div>
-      <div class="actions">
-        <button class="primary" id="save">حفظ الصورة</button>
-        <button id="share">مشاركة</button>
-      </div>
-      <div class="hint">امسح كارت الاتصال لحفظ بيانات الشركة في الهاتف</div>
-    </section>
-    <section class="panel">
+      <h2>1) بيانات الاتصال</h2>
+      <label>الهاتف</label>
+      <input id="phone" inputmode="tel" autocomplete="tel" value="+20 12 0000 0000" />
+      <label>واتساب (برقم الدولة بدون +)</label>
+      <input id="whatsapp" inputmode="numeric" value="201200000000" />
+      <label>الإيميل</label>
+      <input id="email" inputmode="email" autocomplete="email" value="info@monochrome-ivd.com" />
+      <label>الموقع</label>
+      <input id="website" inputmode="url" value="https://monochrome-ivd.com" />
       <label>اسم الشركة</label>
       <input id="name" value="MONO CHROME FOR IVD SOLUTIONS" />
-      <label>القطاع</label>
-      <input id="sector" value="التشخيص المتقدم" />
-      <label>الهاتف</label>
-      <input id="phone" value="+20 12 0000 0000" />
-      <label>واتساب</label>
-      <input id="whatsapp" value="201200000000" />
-      <label>الإيميل</label>
-      <input id="email" value="info@monochrome-ivd.com" />
-      <label>الموقع</label>
-      <input id="website" value="https://monochrome-ivd.com" />
       <label>العنوان</label>
       <input id="address" value="القاهرة الجديدة، مصر" />
     </section>
+
+    <section class="panel">
+      <h2>2) نوع الـ QR</h2>
+      <div class="tabs" id="types">
+        <button type="button" data-kind="vcard" class="active">كارت اتصال</button>
+        <button type="button" data-kind="whatsapp">واتساب</button>
+        <button type="button" data-kind="phone">هاتف</button>
+        <button type="button" data-kind="email">إيميل</button>
+        <button type="button" data-kind="website">موقع</button>
+      </div>
+      <div class="qr-box"><canvas id="qr" width="280" height="280"></canvas></div>
+      <div class="status" id="status">جاري إنشاء الـ QR…</div>
+      <div class="actions">
+        <button type="button" class="primary" id="refresh">حدّث الـ QR</button>
+        <button type="button" id="save">حفظ الصورة</button>
+      </div>
+    </section>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="qrcode.js"></script>
   <script>
+    const KEYS = ["name", "phone", "whatsapp", "email", "website", "address"];
     const $ = (id) => document.getElementById(id);
     let kind = "vcard";
-    const canvas = $("qr");
 
+    function loadSaved() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("mc-profile") || "{}");
+        KEYS.forEach((k) => { if (saved[k]) $(k).value = saved[k]; });
+        if (saved.kind) kind = saved.kind;
+      } catch (e) {}
+    }
+    function persist() {
+      const data = { kind };
+      KEYS.forEach((k) => { data[k] = $(k).value; });
+      localStorage.setItem("mc-profile", JSON.stringify(data));
+    }
     function payload() {
-      const name = $("name").value.trim();
+      const name = $("name").value.trim() || "MONO CHROME";
       const phone = $("phone").value.trim();
       const email = $("email").value.trim();
       const website = $("website").value.trim();
@@ -125,7 +129,7 @@
       const wa = $("whatsapp").value.replace(/\D/g, "");
       if (kind === "phone") return "tel:" + phone.replace(/\s/g, "");
       if (kind === "email") return "mailto:" + email;
-      if (kind === "website") return website;
+      if (kind === "website") return website || "https://monochrome-ivd.com";
       if (kind === "whatsapp") return "https://wa.me/" + wa;
       return [
         "BEGIN:VCARD",
@@ -136,42 +140,66 @@
         "EMAIL:" + email,
         "URL:" + website,
         "ADR;TYPE=WORK:;;" + address,
-        "END:VCARD",
+        "END:VCARD"
       ].join("\n");
     }
-
-    async function draw() {
-      await QRCode.toCanvas(canvas, payload(), {
-        width: 560,
-        margin: 2,
-        color: { dark: "#0c1220", light: "#ffffff" },
-      });
+    function setStatus(msg, cls) {
+      const el = $("status");
+      el.textContent = msg;
+      el.className = "status" + (cls ? " " + cls : "");
+    }
+    function draw() {
+      persist();
+      const canvas = $("qr");
+      const ctx = canvas.getContext("2d");
+      try {
+        if (typeof qrcode !== "function") throw new Error("مكتبة QR غير موجودة");
+        const text = payload();
+        const qr = qrcode(0, "M");
+        qr.addData(text);
+        qr.make();
+        const n = qr.getModuleCount();
+        const scale = Math.max(4, Math.floor(280 / n));
+        const dim = n * scale;
+        canvas.width = dim;
+        canvas.height = dim;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, dim, dim);
+        ctx.fillStyle = "#0c1220";
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            if (qr.isDark(r, c)) ctx.fillRect(c * scale, r * scale, scale, scale);
+          }
+        }
+        setStatus("الـ QR محدّث ببياناتك الحالية", "ok");
+      } catch (err) {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        setStatus("تعذر إنشاء الـ QR. اضغط حدّث الـ QR", "err");
+      }
     }
 
-    document.getElementById("types").addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      kind = btn.dataset.kind;
-      document.querySelectorAll("#types button").forEach((b) => b.classList.toggle("active", b === btn));
-      draw();
+    loadSaved();
+    document.querySelectorAll("#types button").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.kind === kind);
+      btn.addEventListener("click", () => {
+        kind = btn.dataset.kind;
+        document.querySelectorAll("#types button").forEach((b) => b.classList.toggle("active", b === btn));
+        draw();
+      });
     });
-    document.querySelectorAll("input").forEach((el) => el.addEventListener("input", draw));
-
-    $("save").onclick = () => {
+    KEYS.forEach((k) => {
+      const el = $(k);
+      ["input", "change", "keyup", "paste"].forEach((ev) => el.addEventListener(ev, draw));
+    });
+    $("refresh").addEventListener("click", draw);
+    $("save").addEventListener("click", () => {
+      draw();
       const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
+      a.href = $("qr").toDataURL("image/png");
       a.download = "monochrome-qr.png";
       a.click();
-    };
-    $("share").onclick = async () => {
-      const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
-      const file = new File([blob], "monochrome-qr.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: "MONO CHROME QR" });
-      } else {
-        $("save").click();
-      }
-    };
+    });
     draw();
   </script>
 </body>
