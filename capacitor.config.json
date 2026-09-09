@@ -1,0 +1,8 @@
+{
+  "appId": "com.monochrome.ivd",
+  "appName": "Mono Chrome",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}

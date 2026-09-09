@@ -2,91 +2,54 @@ name: Build Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Prepare Web Project
-        run: |
-          if [ ! -f package.json ]; then
-            npm init -y
-          fi
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npm run build --if-present
-
-      - name: Prepare Web Directory & Index HTML
-        run: |
-          mkdir -p www
-          
-          if [ ! -d "dist" ] && [ ! -d "build" ]; then
-            find . -maxdepth 1 -type f \( -name "*.html" -o -name "*.css" -o -name "*.js" \) -exec cp {} www/ \;
-            if [ -d "assets" ]; then cp -r assets www/; fi
-            if [ -d "css" ]; then cp -r css www/; fi
-            if [ -d "js" ]; then cp -r js www/; fi
-            if [ -d "images" ]; then cp -r images www/; fi
-            if [ -d "img" ]; then cp -r img www/; fi
-          fi
-
-          WEB_DIR="www"
-          if [ -d "dist" ]; then WEB_DIR="dist"; fi
-          if [ -d "build" ]; then WEB_DIR="build"; fi
-
-          if [ ! -f "$WEB_DIR/index.html" ]; then
-            FIRST_HTML=$(find . -maxdepth 2 -name "*.html" -not -path "*/node_modules/*" -not -path "*/.git/*" | head -n 1)
-            if [ -n "$FIRST_HTML" ]; then
-              cp "$FIRST_HTML" "$WEB_DIR/index.html"
-            else
-              echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>App</title></head><body><h1>App Loaded</h1></body></html>' > "$WEB_DIR/index.html"
-            fi
-          fi
-
-      - name: Setup Java JDK
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Setup Capacitor Configuration
+      - name: Prepare web assets
         run: |
-          WEB_DIR="www"
-          if [ -d "dist" ]; then WEB_DIR="dist"; fi
-          if [ -d "build" ]; then WEB_DIR="build"; fi
+          mkdir -p www
+          if [ ! -f www/index.html ]; then
+            echo "www/index.html is required" >&2
+            exit 1
+          fi
 
-          cat <<EOF > capacitor.config.json
-          {
-            "appId": "com.example.myapp",
-            "appName": "MyApk",
-            "webDir": "$WEB_DIR",
-            "bundledWebRuntime": false
-          }
-          EOF
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0
 
-          npx cap add android || true
+      - name: Add Android platform
+        run: |
+          npx cap add android
           npx cap sync android
+          test -x android/gradlew || chmod +x android/gradlew
 
-      - name: Clean Gradle Caches
-        run: rm -rf ~/.gradle/caches/
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Build APK with Gradle
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --no-build-cache --max-workers=1
-
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
+          name: MonoChrome-QR
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

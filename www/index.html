@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MONO CHROME — QR</title>
+  <style>
+    :root {
+      --ink: #0c1220;
+      --crimson: #b42318;
+      --paper: #f4efe6;
+      --card: #fffdf8;
+      --line: #d7cfc2;
+      --muted: #5c6570;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 100% -10%, #fbe7e3 0%, var(--paper) 45%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    header {
+      padding: 20px 18px 8px;
+    }
+    .brand {
+      font-size: 11px;
+      letter-spacing: .28em;
+      color: var(--crimson);
+      font-weight: 700;
+    }
+    h1 { margin: 6px 0 0; font-size: 22px; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    main { padding: 8px 16px 28px; display: grid; gap: 14px; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(12,18,32,.06);
+    }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tabs button, .actions button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .tabs button.active, .actions button.primary {
+      background: var(--crimson);
+      color: #fff;
+      border-color: var(--crimson);
+    }
+    canvas { width: min(280px, 100%); height: auto; background: #fff; border-radius: 12px; }
+    .qr-wrap { display: grid; place-items: center; padding: 8px 0; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .actions button { flex: 1; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">MONO CHROME</div>
+    <h1>FOR IVD SOLUTIONS</h1>
+    <div class="sub">كارت الشركة وQR للتواصل — تأسست 2024</div>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="tabs" id="types">
+        <button data-kind="vcard" class="active">كارت اتصال</button>
+        <button data-kind="whatsapp">واتساب</button>
+        <button data-kind="phone">هاتف</button>
+        <button data-kind="email">إيميل</button>
+        <button data-kind="website">موقع</button>
+      </div>
+      <div class="qr-wrap"><canvas id="qr"></canvas></div>
+      <div class="actions">
+        <button class="primary" id="save">حفظ الصورة</button>
+        <button id="share">مشاركة</button>
+      </div>
+      <div class="hint">امسح كارت الاتصال لحفظ بيانات الشركة في الهاتف</div>
+    </section>
+    <section class="panel">
+      <label>اسم الشركة</label>
+      <input id="name" value="MONO CHROME FOR IVD SOLUTIONS" />
+      <label>القطاع</label>
+      <input id="sector" value="التشخيص المتقدم" />
+      <label>الهاتف</label>
+      <input id="phone" value="+20 12 0000 0000" />
+      <label>واتساب</label>
+      <input id="whatsapp" value="201200000000" />
+      <label>الإيميل</label>
+      <input id="email" value="info@monochrome-ivd.com" />
+      <label>الموقع</label>
+      <input id="website" value="https://monochrome-ivd.com" />
+      <label>العنوان</label>
+      <input id="address" value="القاهرة الجديدة، مصر" />
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let kind = "vcard";
+    const canvas = $("qr");
+
+    function payload() {
+      const name = $("name").value.trim();
+      const phone = $("phone").value.trim();
+      const email = $("email").value.trim();
+      const website = $("website").value.trim();
+      const address = $("address").value.trim();
+      const wa = $("whatsapp").value.replace(/\D/g, "");
+      if (kind === "phone") return "tel:" + phone.replace(/\s/g, "");
+      if (kind === "email") return "mailto:" + email;
+      if (kind === "website") return website;
+      if (kind === "whatsapp") return "https://wa.me/" + wa;
+      return [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:" + name,
+        "ORG:" + name,
+        "TEL;TYPE=WORK,VOICE:" + phone,
+        "EMAIL:" + email,
+        "URL:" + website,
+        "ADR;TYPE=WORK:;;" + address,
+        "END:VCARD",
+      ].join("\n");
+    }
+
+    async function draw() {
+      await QRCode.toCanvas(canvas, payload(), {
+        width: 560,
+        margin: 2,
+        color: { dark: "#0c1220", light: "#ffffff" },
+      });
+    }
+
+    document.getElementById("types").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      kind = btn.dataset.kind;
+      document.querySelectorAll("#types button").forEach((b) => b.classList.toggle("active", b === btn));
+      draw();
+    });
+    document.querySelectorAll("input").forEach((el) => el.addEventListener("input", draw));
+
+    $("save").onclick = () => {
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "monochrome-qr.png";
+      a.click();
+    };
+    $("share").onclick = async () => {
+      const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "monochrome-qr.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "MONO CHROME QR" });
+      } else {
+        $("save").click();
+      }
+    };
+    draw();
+  </script>
+</body>
+</html>
