@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob:;" />
   <title>MONO CHROME — QR</title>
   <style>
     :root {
@@ -102,7 +102,10 @@
       </div>
     </section>
   </main>
-  <script src="qrcode.js"></script>
+
+  <!-- استخدام CDN مستقر لمكتبة qrcode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+
   <script>
     const KEYS = ["name", "phone", "whatsapp", "email", "website", "address"];
     const $ = (id) => document.getElementById(id);
