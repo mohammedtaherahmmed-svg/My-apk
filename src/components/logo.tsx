@@ -44,7 +44,7 @@ export function BrandLockup({
               inverted && "text-surface/70",
             )}
           >
-            For IVD Solutions
+            For invitro9 Solutions
           </span>
         )}
       </span>
